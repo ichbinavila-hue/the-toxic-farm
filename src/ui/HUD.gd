@@ -20,7 +20,7 @@ func _ready() -> void:
 
     var title = Label.new()
     title.position = Vector2(16,12)
-    title.text = "THE TOXIC FARM — ALPHA 0.1"
+    title.text = "THE TOXIC FARM — ONLINE"
     panel.add_child(title)
 
     var info = Label.new()
@@ -49,48 +49,48 @@ func _ready() -> void:
     panel.add_child(elems)
 
     var host = Button.new()
-    host.text = "HOST"
+    host.text = "ONLINE"
     host.position = Vector2(16,120)
     host.size = Vector2(95,32)
     host.pressed.connect(func(): host_pressed.emit())
     panel.add_child(host)
 
     var ip = LineEdit.new()
-    ip.text = "127.0.0.1"
+    ip.text = "wss://the-toxic-farm-server.onrender.com"
     ip.position = Vector2(120,120)
-    ip.size = Vector2(160,32)
+    ip.size = Vector2(290,32)
     panel.add_child(ip)
 
     var join = Button.new()
-    join.text = "JOIN"
-    join.position = Vector2(290,120)
-    join.size = Vector2(120,32)
+    join.text = "CONECTAR"
+    join.position = Vector2(16,155)
+    join.size = Vector2(110,32)
     join.pressed.connect(func(): join_pressed.emit(ip.text))
     panel.add_child(join)
 
     var day = Button.new()
     day.text = "Avançar dia"
-    day.position = Vector2(16,165)
+    day.position = Vector2(16,200)
     day.size = Vector2(120,32)
     day.pressed.connect(func(): action_requested.emit("day"))
     panel.add_child(day)
 
     var fish = Button.new()
     fish.text = "Pescar"
-    fish.position = Vector2(150,165)
+    fish.position = Vector2(150,200)
     fish.size = Vector2(120,32)
     fish.pressed.connect(func(): action_requested.emit("fish"))
     panel.add_child(fish)
 
     var mine = Button.new()
     mine.text = "Minerar"
-    mine.position = Vector2(284,165)
+    mine.position = Vector2(284,200)
     mine.size = Vector2(126,32)
     mine.pressed.connect(func(): action_requested.emit("mine"))
     panel.add_child(mine)
 
     var travel = OptionButton.new()
-    travel.position = Vector2(16,210)
+    travel.position = Vector2(16,245)
     travel.size = Vector2(195,32)
     var regions = {"farm":"Fazenda","forest":"Floresta","village":"Vila","beach":"Praia","mine":"Mina","spirit":"Região Espiritual"}
     for id in regions:
@@ -100,7 +100,7 @@ func _ready() -> void:
     panel.add_child(travel)
 
     var craft = OptionButton.new()
-    craft.position = Vector2(220,210)
+    craft.position = Vector2(220,245)
     craft.size = Vector2(190,32)
     for id in CraftingSystem.RECIPES:
         craft.add_item(CraftingSystem.RECIPES[id].name)
@@ -110,8 +110,8 @@ func _ready() -> void:
 
     var status_label = Label.new()
     status_label.name = "Status"
-    status_label.position = Vector2(16,260)
-    status_label.size = Vector2(400,80)
+    status_label.position = Vector2(16,295)
+    status_label.size = Vector2(400,50)
     status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     status_label.text = status
     panel.add_child(status_label)
