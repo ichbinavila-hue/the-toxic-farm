@@ -56,25 +56,36 @@ func _ready() -> void:
 
     _spawn_demo_enemy()
     _load_save()
+    call_deferred("_auto_connect")
+
+func _auto_connect() -> void:
+    _host()
 
 func _host() -> void:
     network.host_game()
-    hud.set_status("Host criado. Até 5 jogadores.")
+    hud.set_status("Conectando ao servidor online... Até 5 jogadores.")
 
 func _join(ip: String) -> void:
     network.join_game(ip)
-    hud.set_status("Conectando a %s..." % ip)
+    hud.set_status("Conectando ao servidor online...")
 
 func _character_selected(id: String) -> void:
-    network.send_message({"type":"character","value":id})
+    network.send_message({"type":"join", "character":id})
+    var me = players.get(network.local_peer_id())
+    if me:
+        me.character_id = id
 
 func _element_selected(id: String) -> void:
-    network.send_message({"type":"element","value":id})
+    network.send_message({"type":"join", "element":id})
+    var me = players.get(network.local_peer_id())
+    if me:
+        me.element_id = id
 
 func _action_requested(action: String) -> void:
-    var my_id := multiplayer.get_unique_id()
-    if not inventories.has(my_id):
+    var my_id := network.local_peer_id()
+    if my_id <= 0 or not inventories.has(my_id):
         return
+    network.send_action(action)
     var inv: Inventory = inventories[my_id]
     var p = players.get(my_id)
     if action == "day":
@@ -95,29 +106,36 @@ func _action_requested(action: String) -> void:
         hud.set_status("Minerou %s x%d. +15 XP." % [result.id, result.amount])
 
 func _travel(region_id: String) -> void:
-    var id := multiplayer.get_unique_id()
+    var id := network.local_peer_id()
+    if id <= 0:
+        return
     var level := progression[id].level if progression.has(id) else 1
     if regions.travel(region_id, level):
         hud.set_status("Viajando para: %s" % RegionManager.REGIONS[region_id].name)
+        var p = players.get(id)
+        if p:
+            network.send_position(p.position, region_id)
     else:
         hud.set_status("Região bloqueada. Nível necessário.")
 
 func _craft(recipe_id: String) -> void:
-    var id := multiplayer.get_unique_id()
-    if not inventories.has(id):
+    var id := network.local_peer_id()
+    if id <= 0 or not inventories.has(id):
         return
     if crafting.craft(inventories[id], recipe_id):
         _gain_xp(id, 10)
+        network.send_action("craft", {"recipe":recipe_id})
         hud.set_status("Criado: %s." % CraftingSystem.RECIPES[recipe_id].name)
     else:
         hud.set_status("Materiais insuficientes.")
 
 func _on_player_joined(peer_id: int) -> void:
-    if players.has(peer_id):
+    if peer_id <= 0 or players.has(peer_id):
         return
     var p = PlayerScene.instantiate()
     p.name = "Player_%s" % peer_id
     p.peer_id = peer_id
+    p.network = network
     p.position = Vector2(220 + (players.size()%3)*60, 250 + (players.size()/3)*70)
     world.add_child(p)
     players[peer_id] = p
@@ -128,7 +146,7 @@ func _on_player_joined(peer_id: int) -> void:
     inv.add("stone", 10)
     inv.add("turnip", 5)
     inventories[peer_id] = inv
-    hud.set_status("Jogadores: %d/5" % players.size())
+    hud.set_status("Online: %d/5 jogadores" % players.size())
 
 func _on_player_left(peer_id: int) -> void:
     if players.has(peer_id):
@@ -136,17 +154,27 @@ func _on_player_left(peer_id: int) -> void:
         players.erase(peer_id)
     progression.erase(peer_id)
     inventories.erase(peer_id)
-    hud.set_status("Jogadores: %d/5" % players.size())
+    hud.set_status("Online: %d/5 jogadores" % players.size())
 
 func _on_network_message(peer_id: int, data: Dictionary) -> void:
+    if data.get("type") == "error":
+        hud.set_status(str(data.get("message", "Erro de rede.")))
+        return
     if not players.has(peer_id):
         return
     var p = players[peer_id]
     match data.get("type"):
-        "character":
-            p.character_id = data.get("value","pepitão")
-        "element":
-            p.element_id = data.get("value","spiritual")
+        "player_state":
+            var state: Dictionary = data.get("player", {})
+            p.character_id = str(state.get("character", p.character_id)).to_lower()
+            p.element_id = str(state.get("element", p.element_id)).to_lower()
+            p.set_remote_position(Vector2(float(state.get("x", p.position.x)), float(state.get("y", p.position.y))))
+        "position":
+            var pos_player: Dictionary = data.get("player", {})
+            p.set_remote_position(Vector2(float(pos_player.get("x", p.position.x)), float(pos_player.get("y", p.position.y))))
+        "action":
+            if peer_id != network.local_peer_id():
+                hud.set_status("Jogador %d realizou: %s" % [peer_id, data.get("action", "ação")])
         "xp":
             _gain_xp(peer_id, int(data.get("amount",0)))
 
