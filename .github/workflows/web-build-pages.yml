@@ -31,6 +31,14 @@ jobs:
           presets_to_export: Web
           cache: true
 
+      - name: Verify Web export
+        run: |
+          test -f web/index.html
+          test -s web/index.html
+          touch web/.nojekyll
+          echo "Web export verified: web/index.html"
+          find web -maxdepth 2 -type f | sort | head -100
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
