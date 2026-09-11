@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: the-toxic-farm-server
+    runtime: docker
+    dockerfilePath: ./server/websocket/Dockerfile
+    dockerContext: ./server/websocket
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: "10000"

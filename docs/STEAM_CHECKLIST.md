@@ -1,0 +1,25 @@
+# Checklist Steam
+
+- [ ] Conta Steamworks
+- [ ] App ID
+- [ ] Builds Windows
+- [ ] Build Linux
+- [ ] Depots
+- [ ] Steam lobbies
+- [ ] Convites
+- [ ] Achievements
+- [ ] Cloud Saves
+- [ ] Rich Presence
+- [ ] Página da loja
+- [ ] Trailer
+- [ ] Screenshots
+- [ ] Ícones
+- [ ] Capsule art
+- [ ] Classificação etária
+- [ ] Política de privacidade
+- [ ] Termos
+- [ ] Testes multiplayer
+- [ ] Teste offline
+- [ ] Crash reporting
+- [ ] QA final
+- [ ] Build de lançamento
